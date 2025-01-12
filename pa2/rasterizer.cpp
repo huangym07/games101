@@ -98,6 +98,8 @@ void rst::rasterizer::draw(pos_buf_id pos_buffer, ind_buf_id ind_buffer, col_buf
 
         rasterize_triangle(t);
     }
+
+	std::cout << "draw" << std::endl;
 }
 
 static bool insideTriangle(float x, float y, const Eigen::Vector3f *vertices) {
@@ -129,12 +131,36 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
 		uy = std::max(uy, vertex.y());
 	}
 
+	// DEBUG
+//	std::cout << "lx ux ly uy is " << lx << " " << ux << " " << ly << " " << uy << std::endl;
+	// DEBUG
+
 	std::vector<float> dx{0.25, 0.25, 0.75, 0.75}, dy{0.25, 0.75, 0.25, 0.75};
 	for (int x = (int)(lx); x <= (int)(ux); x++) {
 		for (int y = (int)(ly); y <= (int)(uy); y++) {
+			// DEBUG
+			// std::cout << "(x, y) is " << x << " " << y << ": \n";
+			// DEBUG
+
+			// DEBUG
+//			int debug = 0;
+//			if (x == 4 && y == 6) debug = 1;
+//			else debug = 0;
+			// DEBUG
+
 			Eigen::Vector3f color_pixel{0, 0, 0};
 			for (int k = 0; k < 4; k++) {
 				float px = x + dx[k], py = y + dy[k];
+
+				// index of the pixel in depth sample buffer
+				int ind = get_index(x, y) * 4 + k;
+
+				// DEBUG
+//				if (debug) {
+//					std::cout << "before depth_sample[" << ind << "] is " << depth_sample[ind] << std::endl;
+//					std::cout << "before frame_sample[" << ind << "] is " << frame_sample[ind] << std::endl;
+//				}
+				// DEBUG
 
 				if (insideTriangle(px, py, t.v)) {
 					auto[alpha, beta, gamma] = computeBarycentric2D(px, py, t.v);
@@ -142,20 +168,73 @@ void rst::rasterizer::rasterize_triangle(const Triangle& t) {
 					float z_interpolated = alpha * v[0].z() / v[0].w() + beta * v[1].z() / v[1].w() + gamma * v[2].z() / v[2].w();
 					z_interpolated *= w_reciprocal;
 	
-					// index of the pixel in depth sample buffer
-					int ind = get_index(x, y) * 4 + k;
+					// DEBUG
+//					if (debug) std::cout << "k is " << k << " in triangle" << std::endl;
+					// DEBUG
+
 					if (z_interpolated < depth_sample[ind]) {
+						// DEBUG
+//						if (debug) std::cout << "update frame_sample" << std::endl;
+						// DEBUG
+
 						depth_sample[ind] = z_interpolated;
 						frame_sample[ind] = t.getColor() / 4;
 					}
 
-					color_pixel += frame_sample[ind];
+
 				}
+
+				// DEBUG
+				// std::cout << "sample ind is " << ind << std::endl;
+				// DEBUG
+				
+				// DEBUG
+				// if (debug) {
+//					std::cout << "after depth_sample[" << ind << "] is " << depth_sample[ind] << std::endl;
+//					std::cout << "after frame_sample[" << ind << "] is " << frame_sample[ind] << std::endl;
+//				}
+				// DEBUG
+			
+				// DEBUG
+				// std::cout << "frame_sample[" << ind << "] is " << frame_sample[ind] << std::endl;
+				// std::cout << "depth_sample[" << ind << "] is " << depth_sample[ind] << std::endl;
+				// DEBUG
+
+				color_pixel += frame_sample[ind];
 			}
 
+			// DEBUG
+			// if (debug) std::cout << "color_pixel is " << color_pixel << std::endl;
+			// DEBUG
+
+			// DEBUG
+			// if (debug) std::cout << "before: frame_buf[" << get_index(x, y) << "] is " << frame_buf[get_index(x, y)] << std::endl;
+			// DEBUG
+
+			// DEBUG
+//			std::cout << "(" << x << ", " << y << "): " << std::endl;
+//			std::cout << "before frame_buf is " << frame_buf[get_index(x, y)] << std::endl;
+			// DEBUG
+
 			frame_buf[get_index(x, y)] = color_pixel;
+
+			// DEBUG
+//			std::cout << "after frame_buf is " << frame_buf[get_index(x, y)] << std::endl;
+			// DEBUG
+
+			// DEBUG
+			// if (debug) std::cout << "after: frame_buf[" << get_index(x, y) << "] is " << frame_buf[get_index(x, y)] << std::endl;
+			// if (debug) std::cout << "\n\n" << std::endl;
+			// DEBUG
+
 		}
 	}
+
+	// DEBUG
+	// std::cout << "breakpoint frame_buffer assigment" << std::endl;
+	// std::cout << "\n\n\n\n" << std::endl;
+	std::cout << "rasterize_triangle finished" << std::endl;
+	// DEBUG
 }
 
 void rst::rasterizer::set_model(const Eigen::Matrix4f& m)
@@ -192,8 +271,8 @@ rst::rasterizer::rasterizer(int w, int h) : width(w), height(h)
     frame_buf.resize(w * h);
     depth_buf.resize(w * h);
 
-	frame_sample.resize(w * h * 4);
-	depth_sample.resize(w * h * 4);
+	frame_sample.resize(w * h * 5);
+	depth_sample.resize(w * h * 5);
 }
 
 int rst::rasterizer::get_index(int x, int y)
