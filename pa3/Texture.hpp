@@ -24,8 +24,18 @@ public:
 
     Eigen::Vector3f getColor(float u, float v)
     {
+		// (u, v): Y-aixs is oriented downwards,
+		// x-aixs is oriented to the right,
+		// origin is at the top-left of the image.
+		// (u_img, v_img): Y-axis is oriented upwards,
+		// x-axis is oriented to the right,
+		// origin is at the bottom-left of the image.
+		// Transform (u, v) to (u_img, v_img)
         auto u_img = u * width;
         auto v_img = (1 - v) * height;
+
+		// image_data.at<cv::Vec3b>(y, x)
+		// gets the value at (x, y) in the texture
         auto color = image_data.at<cv::Vec3b>(v_img, u_img);
         return Eigen::Vector3f(color[0], color[1], color[2]);
     }

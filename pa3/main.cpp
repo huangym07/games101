@@ -49,8 +49,30 @@ Eigen::Matrix4f get_model_matrix(float angle)
 
 Eigen::Matrix4f get_projection_matrix(float eye_fov, float aspect_ratio, float zNear, float zFar)
 {
-    // TODO: Use the same projection matrix from the previous assignments
+    Eigen::Matrix4f projection;
 
+	float t = zNear * std::tan(eye_fov / 180 * MY_PI / 2);
+	float r = t * aspect_ratio;
+
+	Eigen::Matrix4f right_to_left_hand, persp_to_ortho, ortho;
+	right_to_left_hand << 1, 0, 0, 0,
+						0, 1, 0, 0,
+						0, 0, -1, 0,
+						0, 0, 0, 1;
+		
+	persp_to_ortho << zNear, 0, 0, 0,
+				   0, zNear, 0, 0, 
+				   0, 0, zNear + zFar, -zNear * zFar, 
+				   0, 0, 1, 0;
+
+	ortho << 1 / r, 0, 0, 0,
+		  0, 1 / t, 0, 0,
+		  0, 0, 2 / (zFar - zNear), (zNear + zFar) / (zNear - zFar),
+		  0, 0, 0, 1;
+
+	projection = ortho * persp_to_ortho * right_to_left_hand;	
+
+    return projection;
 }
 
 Eigen::Vector3f vertex_shader(const vertex_shader_payload& payload)
@@ -83,8 +105,7 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     Eigen::Vector3f return_color = {0, 0, 0};
     if (payload.texture)
     {
-        // TODO: Get the texture value at the texture coordinates of the current fragment
-
+		return_color = payload.texture->getColor(payload.tex_coords.x(), payload.tex_coords.y());
     }
     Eigen::Vector3f texture_color;
     texture_color << return_color.x(), return_color.y(), return_color.z();
@@ -110,9 +131,19 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
 
     for (auto& light : lights)
     {
-        // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
-        // components are. Then, accumulate that result on the *result_color* object.
+		Vector3f input_vec = (light.position - point).normalized();
+		Vector3f view_vec = (eye_pos - point).normalized();
+		Vector3f half_vec = (input_vec + view_vec).normalized();
+		float r2 = (light.position - point).dot(light.position - point);
 
+		// half vector should be obtained from two unit vector.
+		// !!! unit vector
+		// so half_vec2 is wrong.
+// 		Vector3f half_vec2 = ((light.position - point) + (eye_pos - point)).normalized();
+
+		result_color += ka.cwiseProduct(amb_light_intensity)
+				+ kd.cwiseProduct(light.intensity / r2) * std::max(0.0f, normal.dot(input_vec))
+				+ ks.cwiseProduct(light.intensity / r2) * std::max(0.0f, pow(normal.dot(half_vec), p));
     }
 
     return result_color * 255.f;
@@ -140,9 +171,14 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
     Eigen::Vector3f result_color = {0, 0, 0};
     for (auto& light : lights)
     {
-        // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
-        // components are. Then, accumulate that result on the *result_color* object.
-        
+		Vector3f input_vec = (light.position - point).normalized();
+		Vector3f view_vec = (eye_pos - point).normalized();
+		Vector3f half_vec = (input_vec + view_vec).normalized();
+		float r2 = (light.position - point).dot(light.position - point);
+
+		result_color += ka.cwiseProduct(amb_light_intensity)
+				+ kd.cwiseProduct(light.intensity / r2) * std::max(0.0f, normal.dot(input_vec))
+				+ ks.cwiseProduct(light.intensity / r2) * std::max(0.0f, pow(normal.dot(half_vec), p));
     }
 
     return result_color * 255.f;
