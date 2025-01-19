@@ -105,7 +105,8 @@ Eigen::Vector3f texture_fragment_shader(const fragment_shader_payload& payload)
     Eigen::Vector3f return_color = {0, 0, 0};
     if (payload.texture)
     {
-		return_color = payload.texture->getColor(payload.tex_coords.x(), payload.tex_coords.y());
+// 		return_color = payload.texture->getColor(payload.tex_coords.x(), payload.tex_coords.y());
+		return_color = payload.texture->getColorBilinear(payload.tex_coords.x(), payload.tex_coords.y());
     }
     Eigen::Vector3f texture_color;
     texture_color << return_color.x(), return_color.y(), return_color.z();
@@ -226,13 +227,16 @@ Eigen::Vector3f displacement_fragment_shader(const fragment_shader_payload& payl
 
 	// 1.f is divided by w and v, 
 	// since arguments of getColor are multiplied by width and height in function getColor.
-	float du = kh * kn * (payload.texture->getColor(u + 1.f / w, v).norm() - payload.texture->getColor(u, v).norm());
-	float dv = kh * kn * (payload.texture->getColor(u, v + 1.f / h).norm() - payload.texture->getColor(u, v).norm());
+// 	float du = kh * kn * (payload.texture->getColor(u + 1.f / w, v).norm() - payload.texture->getColor(u, v).norm());
+// 	float dv = kh * kn * (payload.texture->getColor(u, v + 1.f / h).norm() - payload.texture->getColor(u, v).norm());
+
+	float du = kh * kn * (payload.texture->getColorBilinear(u + 1.f / w, v).norm() - payload.texture->getColorBilinear(u, v).norm());
+	float dv = kh * kn * (payload.texture->getColorBilinear(u, v + 1.f / h).norm() - payload.texture->getColorBilinear(u, v).norm());
 
 	Eigen::Vector3f ln;
 	ln << -du, -dv, 1;
 	normal = (TBN * ln).normalized();
-    point = point + kn * normal * payload.texture->getColor(u,v).norm();
+    point = point + kn * normal * payload.texture->getColorBilinear(u,v).norm();
 
     Eigen::Vector3f result_color = {0, 0, 0};
 
@@ -293,8 +297,11 @@ Eigen::Vector3f bump_fragment_shader(const fragment_shader_payload& payload)
 
 	// 1.f is divided by w and v, 
 	// since arguments of getColor are multiplied by width and height in function getColor.
-	float du = kh * kn * (payload.texture->getColor(u + 1.f / w, v).norm() - payload.texture->getColor(u, v).norm());
-	float dv = kh * kn * (payload.texture->getColor(u, v + 1.f / h).norm() - payload.texture->getColor(u, v).norm());
+// 	float du = kh * kn * (payload.texture->getColor(u + 1.f / w, v).norm() - payload.texture->getColor(u, v).norm());
+// 	float dv = kh * kn * (payload.texture->getColor(u, v + 1.f / h).norm() - payload.texture->getColor(u, v).norm());
+
+	float du = kh * kn * (payload.texture->getColorBilinear(u + 1.f / w, v).norm() - payload.texture->getColorBilinear(u, v).norm());
+	float dv = kh * kn * (payload.texture->getColorBilinear(u, v + 1.f / h).norm() - payload.texture->getColorBilinear(u, v).norm());
 
 	Eigen::Vector3f ln;
 	ln << -du, -dv, 1;
