@@ -1,6 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <cmath>
 
 std::vector<cv::Point2f> control_points;
 
@@ -12,6 +13,23 @@ void mouse_handler(int event, int x, int y, int flags, void *userdata)
         << y << ")" << '\n';
         control_points.emplace_back(x, y);
     }     
+}
+
+void antialias_bezier(float x, float y, cv::Mat &window) {
+	int ix = x, iy = y;
+	for (int i = -1; i < 2; i++) {
+		for (int j = -1; j < 2; j++) {
+			int nx = ix + i;
+			int ny = iy + j;
+
+			if (nx < 0 || nx >= window.cols || ny < 0 || ny >= window.rows) continue;
+			if (i == 0 && j == 0) continue;
+			
+			float dis = sqrt((nx + 0.5 - x) * (nx + 0.5 - x) + (ny + 0.5 - y) * (ny + 0.5 - y)) / (2 * sqrt(2));
+
+			window.at<cv::Vec3b>(ny, nx) += (1 - dis) * window.at<cv::Vec3b>(ny, nx);
+		}
+	}
 }
 
 void naive_bezier(const std::vector<cv::Point2f> &points, cv::Mat &window) 
@@ -53,6 +71,7 @@ void bezier(const std::vector<cv::Point2f> &control_points, cv::Mat &window)
 		auto point = recursive_bezier(control_points, t);
 
 		window.at<cv::Vec3b>(point.y, point.x)[1] = 255;
+		antialias_bezier(point.x, point.y, window);
 	}
 }
 
@@ -74,7 +93,7 @@ int main()
 
         if (control_points.size() == 4) 
         {
-            naive_bezier(control_points, window);
+//             naive_bezier(control_points, window);
             bezier(control_points, window);
 
             cv::imshow("Bezier Curve", window);
