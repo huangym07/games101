@@ -1,8 +1,13 @@
 #include <fstream>
 #include "Vector.hpp"
+#include "global.hpp"
 #include "Renderer.hpp"
 #include "Scene.hpp"
 #include <optional>
+
+// [DEBUG]
+// bool debug_op = false;
+// [DEBUG OVER]
 
 inline float deg2rad(const float &deg)
 { return deg * M_PI/180.0; }
@@ -198,10 +203,11 @@ Vector3f castRay(
                 break;
             }
         }
-    }
+	}
 
     return hitColor;
 }
+
 
 // [comment]
 // The main render function. This where we iterate over all pixels in the image, generate
@@ -223,18 +229,37 @@ void Renderer::Render(const Scene& scene)
         for (int i = 0; i < scene.width; ++i)
         {
             // generate primary ray direction
-            float x;
-            float y;
-            // TODO: Find the x and y positions of the current pixel to get the direction
-            // vector that passes through it.
-            // Also, don't forget to multiply both of them with the variable *scale*, and
-            // x (horizontal) variable with the *imageAspectRatio*            
+            float x = (2 * (i + 0.5) / scene.width - 1) * scale * imageAspectRatio;
+            float y = -(2 * (j + 0.5) / scene.height - 1) * scale;
 
             Vector3f dir = Vector3f(x, y, -1); // Don't forget to normalize this direction!
+			normalize(dir);
+
+// 			debug_op = m == 739077;
+// 			if (debug_op) {
+// 				std::cout << "(i, j) is (" << i << ", " << j << ")" << std::endl;
+// 				std::cout << "(x, y) is (" << x << ", " << y << ")" << std::endl;
+// 			}
             framebuffer[m++] = castRay(eye_pos, dir, scene, 0);
         }
         UpdateProgress(j / (float)scene.height);
     }
+
+	// DEBUG
+// 	for (int i = 20; i < m - 20; i++) {
+// 		int count = 0;
+// 		if (IsSame(scene.backgroundColor, framebuffer[i])) {
+// 			for (int j = 1; j <= 5; j++) {
+// 				count += !IsSame(scene.backgroundColor, framebuffer[i + j]);
+// 				count += !IsSame(scene.backgroundColor, framebuffer[i - j]);
+// 			}
+// 
+// 			if (count == 10) {
+// 				std::cout << "index is " << i << std::endl;
+// 			}
+// 		}
+// 	}
+	// DEBUG
 
     // save framebuffer to file
     FILE* fp = fopen("binary.ppm", "wb");

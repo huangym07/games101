@@ -20,6 +20,9 @@ public:
         float b = 2 * dotProduct(dir, L);
         float c = dotProduct(L, L) - radius2;
         float t0, t1;
+
+// 		if (debug_op) 
+// 			std::cout << "Sphere" << std::endl;
         if (!solveQuadratic(a, b, c, t0, t1))
             return false;
         if (t0 < 0)

@@ -65,3 +65,7 @@ inline void UpdateProgress(float progress)
     std::cout << "] " << int(progress * 100.0) << " %\r";
     std::cout.flush();
 }
+
+inline bool IsSame(const Vector3f a, const Vector3f b) {
+	return fabs(a.x - b.x) < 0.0001 && fabs(a.y - b.y) < 0.0001 && fabs(a.z - b.z) < 0.0001;
+}

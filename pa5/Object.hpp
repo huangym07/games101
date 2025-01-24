@@ -17,6 +17,7 @@ public:
 
     virtual ~Object() = default;
 
+//     virtual bool intersect(bool debug_op, const Vector3f&, const Vector3f&, float&, uint32_t&, Vector2f&) const = 0;
     virtual bool intersect(const Vector3f&, const Vector3f&, float&, uint32_t&, Vector2f&) const = 0;
 
     virtual void getSurfaceProperties(const Vector3f&, const Vector3f&, const uint32_t&, const Vector2f&, Vector3f&,

@@ -4,13 +4,32 @@
 
 #include <cstring>
 
+// bool debug_op_Triangle;
+
 bool rayTriangleIntersect(const Vector3f& v0, const Vector3f& v1, const Vector3f& v2, const Vector3f& orig,
                           const Vector3f& dir, float& tnear, float& u, float& v)
 {
-    // TODO: Implement this function that tests whether the triangle
-    // that's specified bt v0, v1 and v2 intersects with the ray (whose
-    // origin is *orig* and direction is *dir*)
-    // Also don't forget to update tnear, u and v.
+	Vector3f S = orig - v0;
+	Vector3f E1 = v1 - v0;
+	Vector3f E2 = v2 - v0;
+
+	Vector3f S1 = crossProduct(dir, E2);
+	Vector3f S2 = crossProduct(S, E1);
+
+	float denominator = dotProduct(S1, E1);
+
+	tnear = dotProduct(S2, E2) / denominator;
+	u = dotProduct(S1, S) / denominator;
+	v = dotProduct(S2, dir) / denominator;
+
+// 	if (debug_op_Triangle) {
+// 		std::cout << "tnear is " << tnear << std::endl;
+// 		std::cout << "u and v are " << u << " " << v << std::endl;
+// 		std::cout << "1 - u - v is " << 1 - u - v << std::endl;
+// 	}
+
+	if (tnear >= 0.0f && u >= 0.0f && v >= 0.0f && 1 - u - v >= 0.0f) return true;
+
     return false;
 }
 
@@ -36,6 +55,10 @@ public:
     bool intersect(const Vector3f& orig, const Vector3f& dir, float& tnear, uint32_t& index,
                    Vector2f& uv) const override
     {
+// 		if (debug_op) {
+// 			std::cout << "Triangle" << std::endl;
+// 		}
+// 		debug_op_Triangle = debug_op;
         bool intersect = false;
         for (uint32_t k = 0; k < numTriangles; ++k)
         {
