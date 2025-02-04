@@ -78,7 +78,10 @@ public:
     MeshTriangle(const std::string& filename)
     {
         objl::Loader loader;
-        loader.LoadFile(filename);
+        bool res = loader.LoadFile(filename);
+        // DEBUG
+        std::cout << (res ? "TRUE" : "FALSE") << std::endl;
+        // DEBUG
 
         assert(loader.LoadedMeshes.size() == 1);
         auto mesh = loader.LoadedMeshes[0];
@@ -230,11 +233,15 @@ inline Intersection Triangle::getIntersection(Ray ray)
     if (v < 0 || u + v > 1)
         return inter;
     t_tmp = dotProduct(e2, qvec) * det_inv;
+    if (t_tmp < 0) 
+        return inter;
 
-    // TODO find ray triangle intersection
-
-
-
+    inter.happened = true;
+    inter.coords = (1 - u - v) * t0 + u * t1 + v * t2;
+    inter.normal = this->normal;
+    inter.distance = sqrt(dotProduct(t_tmp * ray.direction, t_tmp * ray.direction));
+    inter.obj = this;
+    inter.m = this->m;
 
     return inter;
 }

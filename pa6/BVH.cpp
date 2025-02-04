@@ -50,9 +50,11 @@ BVHBuildNode* BVHAccel::recursiveBuild(std::vector<Object*> objects)
     }
     else {
         Bounds3 centroidBounds;
+        // Find a bounding box wrapping each object's centroid
         for (int i = 0; i < objects.size(); ++i)
             centroidBounds =
                 Union(centroidBounds, objects[i]->getBounds().Centroid());
+        // maxExtent return the dimision with max length.
         int dim = centroidBounds.maxExtent();
         switch (dim) {
         case 0:
@@ -104,6 +106,26 @@ Intersection BVHAccel::Intersect(const Ray& ray) const
 
 Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
 {
-    // TODO Traverse the BVH to find intersection
+    if (!node->object && !node->left && !node->right) {
+        // A leaf node
+        return node->object->getIntersection(ray);
+    }
 
+    // Not a leaf node.
+    Intersection left_inter, right_inter;
+    if (!node->left 
+        && node->left->bounds.IntersectP(ray, ray.direction_inv, 
+                                        std::array<int, 3>{(int)ray.direction[0] > 0, (int)ray.direction[1] > 0, (int)ray.direction[2] > 0}))
+            left_inter = BVHAccel::getIntersection(node->left, ray);
+
+
+    if (!node->right 
+        && node->right->bounds.IntersectP(ray, ray.direction_inv, 
+                                        std::array<int, 3>{(int)ray.direction[0] > 0, (int)ray.direction[1] > 0, (int)ray.direction[2] > 0}))
+            right_inter = BVHAccel::getIntersection(node->right, ray);
+
+    if (left_inter.happened && right_inter.happened)
+        return left_inter.distance < right_inter.distance ? left_inter : right_inter;
+
+    return left_inter.happened ? left_inter : right_inter;
 }
