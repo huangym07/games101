@@ -106,20 +106,20 @@ Intersection BVHAccel::Intersect(const Ray& ray) const
 
 Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
 {
-    if (!node->object && !node->left && !node->right) {
+    if (node->object && !node->left && !node->right) {
         // A leaf node
         return node->object->getIntersection(ray);
     }
 
     // Not a leaf node.
     Intersection left_inter, right_inter;
-    if (!node->left 
+    if (node->left 
         && node->left->bounds.IntersectP(ray, ray.direction_inv, 
                                         std::array<int, 3>{(int)ray.direction[0] > 0, (int)ray.direction[1] > 0, (int)ray.direction[2] > 0}))
             left_inter = BVHAccel::getIntersection(node->left, ray);
 
 
-    if (!node->right 
+    if (node->right 
         && node->right->bounds.IntersectP(ray, ray.direction_inv, 
                                         std::array<int, 3>{(int)ray.direction[0] > 0, (int)ray.direction[1] > 0, (int)ray.direction[2] > 0}))
             right_inter = BVHAccel::getIntersection(node->right, ray);

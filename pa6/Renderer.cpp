@@ -32,6 +32,9 @@ void Renderer::Render(const Scene& scene)
             Vector3f dir = Vector3f(x, y, -1);
             dir = normalize(dir);
 
+//            DEBUG
+//            std::cout << "Breakpoint2 passed." << std::endl;
+//            DEBUG
             framebuffer[m++] = scene.castRay(Ray(eye_pos, dir), 0);
         }
         UpdateProgress(j / (float)scene.height);

@@ -20,6 +20,10 @@ int main(int argc, char** argv)
     scene.Add(std::make_unique<Light>(Vector3f(20, 70, 20), 1));
     scene.buildBVH();
 
+//    DEBUG
+//    std::cout << "Breakpoint1 passed." << std::endl;
+//    DEBUG
+
     Renderer r;
 
     auto start = std::chrono::system_clock::now();

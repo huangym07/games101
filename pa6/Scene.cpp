@@ -56,6 +56,9 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
         return Vector3f(0.0,0.0,0.0);
     }
     Intersection intersection = Scene::intersect(ray);
+//    DEBUG
+//    std::cout << "Breakpoint3 passed." << std::endl;
+//    DEBUG
     Material *m = intersection.m;
     Object *hitObject = intersection.obj;
     Vector3f hitColor = this->backgroundColor;
