@@ -233,13 +233,13 @@ inline Intersection Triangle::getIntersection(Ray ray)
     if (v < 0 || u + v > 1)
         return inter;
     t_tmp = dotProduct(e2, qvec) * det_inv;
-    if (t_tmp < 0) 
+    if (t_tmp < -EPSILON) 
         return inter;
 
     inter.happened = true;
     inter.coords = (1 - u - v) * t0 + u * t1 + v * t2;
     inter.normal = this->normal;
-    inter.distance = sqrt(dotProduct(t_tmp * ray.direction, t_tmp * ray.direction));
+    inter.distance = t_tmp;
     inter.obj = this;
     inter.m = this->m;
 

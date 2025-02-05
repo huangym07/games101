@@ -97,10 +97,10 @@ inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
     Vector3f t_tmp2 = dotProduct((pMax - ray.origin), invDir);
     Vector3f t_min = Vector3f::Min(t_tmp1, t_tmp2);
     Vector3f t_max = Vector3f::Max(t_tmp1, t_tmp2);
-    float t_enter = std::min(std::min(t_min[0], t_min[1]), t_min[2]);
-    float t_exit = std::max(std::max(t_max[0], t_max[1]), t_max[2]);
+    float t_enter = std::max(std::max(t_min[0], t_min[1]), t_min[2]);
+    float t_exit = std::min(std::min(t_max[0], t_max[1]), t_max[2]);
     
-    if (t_enter < t_exit && t_exit >= 0) 
+    if (t_enter <= t_exit && t_exit >= 0) 
         return true;
 
     return false;
