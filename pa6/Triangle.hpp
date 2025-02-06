@@ -46,7 +46,6 @@ public:
     Vector3f e1, e2;     // 2 edges v1-v0, v2-v0;
     Vector3f t0, t1, t2; // texture coords
     Vector3f normal;
-    float area;
     Material* m;
 
     Triangle(Vector3f _v0, Vector3f _v1, Vector3f _v2, Material* _m = nullptr)
@@ -55,7 +54,6 @@ public:
         e1 = v1 - v0;
         e2 = v2 - v0;
         normal = normalize(crossProduct(e1, e2));
-        area = crossProduct(e1, e2).norm()*0.5f;
     }
 
     bool intersect(const Ray& ray) override;
@@ -72,29 +70,19 @@ public:
     }
     Vector3f evalDiffuseColor(const Vector2f&) const override;
     Bounds3 getBounds() override;
-    void Sample(Intersection &pos, float &pdf){
-        float x = std::sqrt(get_random_float()), y = get_random_float();
-        pos.coords = v0 * (1.0f - x) + v1 * (x * (1.0f - y)) + v2 * (x * y);
-        pos.normal = this->normal;
-        pdf = 1.0f / area;
-    }
-    float getArea(){
-        return area;
-    }
-    bool hasEmit(){
-        return m->hasEmission();
-    }
 };
 
 class MeshTriangle : public Object
 {
 public:
-    MeshTriangle(const std::string& filename, Material *mt = new Material())
+    MeshTriangle(const std::string& filename)
     {
         objl::Loader loader;
-        loader.LoadFile(filename);
-        area = 0;
-        m = mt;
+        bool res = loader.LoadFile(filename);
+        // DEBUG
+        std::cout << (res ? "TRUE" : "FALSE") << std::endl;
+        // DEBUG
+
         assert(loader.LoadedMeshes.size() == 1);
         auto mesh = loader.LoadedMeshes[0];
 
@@ -106,11 +94,11 @@ public:
                                      -std::numeric_limits<float>::infinity()};
         for (int i = 0; i < mesh.Vertices.size(); i += 3) {
             std::array<Vector3f, 3> face_vertices;
-
             for (int j = 0; j < 3; j++) {
                 auto vert = Vector3f(mesh.Vertices[i + j].Position.X,
                                      mesh.Vertices[i + j].Position.Y,
-                                     mesh.Vertices[i + j].Position.Z);
+                                     mesh.Vertices[i + j].Position.Z) *
+                            60.f;
                 face_vertices[j] = vert;
 
                 min_vert = Vector3f(std::min(min_vert.x, vert.x),
@@ -121,17 +109,23 @@ public:
                                     std::max(max_vert.z, vert.z));
             }
 
+            auto new_mat =
+                new Material(MaterialType::DIFFUSE_AND_GLOSSY,
+                             Vector3f(0.5, 0.5, 0.5), Vector3f(0, 0, 0));
+            new_mat->Kd = 0.6;
+            new_mat->Ks = 0.0;
+            new_mat->specularExponent = 0;
+
             triangles.emplace_back(face_vertices[0], face_vertices[1],
-                                   face_vertices[2], mt);
+                                   face_vertices[2], new_mat);
         }
 
         bounding_box = Bounds3(min_vert, max_vert);
 
         std::vector<Object*> ptrs;
-        for (auto& tri : triangles){
+        for (auto& tri : triangles)
             ptrs.push_back(&tri);
-            area += tri.area;
-        }
+
         bvh = new BVHAccel(ptrs);
     }
 
@@ -194,17 +188,6 @@ public:
 
         return intersec;
     }
-    
-    void Sample(Intersection &pos, float &pdf){
-        bvh->Sample(pos, pdf);
-        pos.emit = m->getEmission();
-    }
-    float getArea(){
-        return area;
-    }
-    bool hasEmit(){
-        return m->hasEmission();
-    }
 
     Bounds3 bounding_box;
     std::unique_ptr<Vector3f[]> vertices;
@@ -215,7 +198,6 @@ public:
     std::vector<Triangle> triangles;
 
     BVHAccel* bvh;
-    float area;
 
     Material* m;
 };
@@ -251,7 +233,6 @@ inline Intersection Triangle::getIntersection(Ray ray)
     if (v < 0 || u + v > 1)
         return inter;
     t_tmp = dotProduct(e2, qvec) * det_inv;
-
     if (t_tmp < 0) 
         return inter;
 
