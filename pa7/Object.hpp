@@ -25,6 +25,7 @@ public:
     virtual float getArea()=0;
     virtual void Sample(Intersection &pos, float &pdf)=0;
     virtual bool hasEmit()=0;
+    virtual Vector3f getEmit() = 0;
 };
 
 

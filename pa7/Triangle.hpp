@@ -84,6 +84,10 @@ public:
     bool hasEmit(){
         return m->hasEmission();
     }
+
+    Vector3f getEmit() {
+        return m->getEmission();
+    }
 };
 
 class MeshTriangle : public Object
@@ -204,6 +208,10 @@ public:
     }
     bool hasEmit(){
         return m->hasEmission();
+    }
+    
+    Vector3f getEmit() {
+        return m->getEmission();
     }
 
     Bounds3 bounding_box;
