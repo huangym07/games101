@@ -60,7 +60,7 @@ bool Scene::trace(
 // Implementation of Path Tracing
 Vector3f Scene::castRay(const Ray &ray, int depth) const
 {
-    Vector3f L_dir, L_indir;
+    Vector3f L_emit, L_dir, L_indir;
     Intersection inter = intersect(ray);
 
     // Don't intersect.
@@ -69,7 +69,7 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
 
     // Ray intersects light directly from pixel.
     if (inter.m->hasEmission()) 
-        return inter.m->getEmission();
+        L_emit = inter.m->getEmission();
 
     // Sample light. 
     Intersection inter_light;
@@ -108,5 +108,5 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
         }
     }
 
-    return L_dir + L_indir;
+    return L_emit + L_dir + L_indir;
 }
