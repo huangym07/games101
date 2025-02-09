@@ -67,13 +67,10 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
     if (!inter.happened)
         return Vector3f(0.0f);
 
-    // Ray intersects light directly from pixel.
-    if (inter.m->hasEmission()) 
-        L_emit = inter.m->getEmission();
-
     // Sample light. 
     Intersection inter_light;
     float pdf_light;
+
     sampleLight(inter_light, pdf_light);
     inter_light.distance = (inter_light.coords - inter.coords).norm();
 
@@ -108,5 +105,5 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
         }
     }
 
-    return L_emit + L_dir + L_indir;
+    return inter.m->getEmission() + L_dir + L_indir;
 }

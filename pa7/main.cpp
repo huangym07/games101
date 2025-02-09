@@ -12,7 +12,6 @@
 // function().
 int main(int argc, char** argv)
 {
-
     // Change the definition here to change resolution
     Scene scene(784, 784);
 
